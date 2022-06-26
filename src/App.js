@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-
+import axios from 'axios'
 import Note from './components/Note'
 import Notification from './components/Notification'
 import noteService from './services/notes'
@@ -14,7 +14,7 @@ const Footer = () => {
   return (
     <div style={footerStyle}>
       <br />
-      <em>Note app, Department of Computer Science, University of Helsinki 2022</em>
+      <em>Note app, Sean Clifton 2022</em>
     </div>
   )
 }
@@ -25,7 +25,8 @@ const App = () => {
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [showAll, setShowAll] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('error')
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [deleted, setDeleted] = useState(true)
 
   useEffect(() => {
     noteService
@@ -33,7 +34,7 @@ const App = () => {
       .then(initialNotes => {
         setNotes(initialNotes)
       })
-  }, [])
+  }, [deleted])
 
   const addNote = (event) => {
     event.preventDefault()
@@ -76,9 +77,21 @@ const App = () => {
       })
   }
 
+  const deleteNote = (note) => {
+    console.log(note)
+    if (window.confirm(`Do you really want to delete this note?`)) {
+      axios
+        .delete(`http://localhost:3001/notes/${note}`)
+        .then(setDeleted(!deleted))
+    } else {
+      return
+    }
+  }
+
   const notesToShow = showAll
     ? notes
     : notes.filter(note => note.important)
+
 
   return (
     <div>
@@ -95,6 +108,7 @@ const App = () => {
             key={note.id}
             note={note}
             toggleImportance={() => toggleImportanceOf(note.id)}
+            deleteNote={() => deleteNote(note.id)}
           />
         )}
       </ul>
